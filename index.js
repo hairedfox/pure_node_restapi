@@ -10,6 +10,8 @@ const url = require('url');
 const StringDecoder = require('string_decoder').StringDecoder;
 const config = require('./config');
 const fs = require('fs');
+const handlers = require('./lib/handlers');
+const helpers = require('./lib/helpers');
 
 // All the server logic for both the http and https server
 const unifiedServer = function(req, res) {
@@ -31,7 +33,7 @@ const unifiedServer = function(req, res) {
 
   // Get the payload, if any
   const decoder = new StringDecoder('utf-8');
-  const buffer = '';
+  let buffer = '';
 
   req.on('data', function(data) {
     buffer += decoder.write(data);
@@ -49,7 +51,7 @@ const unifiedServer = function(req, res) {
       queryStringObject: queryStringObject,
       method: method,
       headers: headers,
-      payload: buffer
+      payload: helpers.parseJsonToObject(buffer)
     };
 
     // Route the request to the handler specified in the router
@@ -93,23 +95,8 @@ httpsServer.listen(config.httpsPort, function() {
   console.log(`The server is listening on port ${config.httpsPort}`);
 })
 
-
-
-// Define the handlers
-const handlers = {};
-
-// Sample handler
-handlers.ping = function(data, callback) {
-  // Callback a http status code, and a payload object if any
-  callback(200);
-};
-
-// Not found handler
-handlers.notFound = function(data, callback) {
-  callback(404);
-};
-
 // Define a request router
 const router = {
-  ping: handlers.ping
+  ping: handlers.ping,
+  users: handlers.users
 }
